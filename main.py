@@ -79,15 +79,20 @@ async def main():
         },
     )
 
-    # Configure the crawler with improved settings
+    # Configure the crawler with valid parameters
     crawl_config = CrawlerRunConfig(
         extraction_strategy=llm_strategy,
         cache_mode=CacheMode.BYPASS,
         process_iframes=True,  # Changed to True for better JS support
         remove_overlay_elements=True,
         exclude_external_links=True,
-        wait_for_page_idle_sec=10,  # Wait for dynamic content
-        scroll_to_load_content=True,  # Scroll to load all items
+        word_count_threshold=50,  # Lower threshold to catch more items
+        #wait_for="networkidle",
+        js_code=[
+            "window.scrollTo(0, document.body.scrollHeight);",  # Scroll to bottom
+            "new Promise(resolve => setTimeout(resolve, 2000))"  # Wait 2 seconds
+        ],
+        verbose=True,
     )
 
     # Configure the browser
@@ -107,7 +112,7 @@ async def main():
             all_tenders.extend(page_data)
             
             # Small delay between pages to avoid rate limiting
-            await asyncio.sleep(5)
+            await asyncio.sleep(2)
 
     # Save all collected data to CSV
     if all_tenders:
